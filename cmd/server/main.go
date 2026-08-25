@@ -1,7 +1,13 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"example.com/acg-go-demo/internal/middleware"
 	"example.com/acg-go-demo/internal/response"
@@ -32,7 +38,22 @@ func main() {
 		Handler: engine,
 	}
 
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		panic(err)
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	<-signals
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("server shutdonw failed: %v", err)
 	}
 }
