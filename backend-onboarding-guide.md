@@ -623,7 +623,7 @@ services:
       MYSQL_USER: app
       MYSQL_PASSWORD: app_password
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT:-13306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./migrations:/docker-entrypoint-initdb.d:ro
@@ -638,7 +638,7 @@ services:
     container_name: acggoods-practice-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-16379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -666,7 +666,7 @@ docker compose ps
 docker compose exec mysql mysql -uapp -papp_password acggoods_practice \
   -e "SELECT DATABASE(), VERSION();"
 
-redis-cli -h 127.0.0.1 -p 6379 ping
+redis-cli -h 127.0.0.1 -p 16379 ping
 ~~~~
 
 预期：
@@ -678,15 +678,15 @@ redis-cli -h 127.0.0.1 -p 6379 ping
 端口冲突：
 
 ~~~~
-lsof -nP -iTCP:3306 -sTCP:LISTEN
-lsof -nP -iTCP:6379 -sTCP:LISTEN
+lsof -nP -iTCP:13306 -sTCP:LISTEN
+lsof -nP -iTCP:16379 -sTCP:LISTEN
 ~~~~
 
 如果需要改端口：
 
 ~~~~
-"13306:3306"
-"16379:6379"
+"${MYSQL_PORT:-13306}:3306"
+"${REDIS_PORT:-16379}:6379"
 ~~~~
 
 再同步修改应用配置。
@@ -736,12 +736,12 @@ app:
   port: 8080
 
 database:
-  dsn: "app:app_password@tcp(127.0.0.1:3306)/acggoods_practice?charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: "app:app_password@tcp(127.0.0.1:13306)/acggoods_practice?charset=utf8mb4&parseTime=True&loc=Local"
   max_open_conns: 20
   max_idle_conns: 5
 
 redis:
-  addr: "127.0.0.1:6379"
+  addr: "127.0.0.1:16379"
   password: ""
   db: 0
 
