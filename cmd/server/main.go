@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,9 +13,12 @@ import (
 	"example.com/acg-go-demo/internal/middleware"
 	"example.com/acg-go-demo/internal/response"
 	"github.com/gin-gonic/gin"
+
+	appconfig "example.com/acg-go-demo/internal/config"
 )
 
 func main() {
+
 	engine := gin.New();
 	engine.Use(
 		middleware.RequestID(),
@@ -33,8 +37,14 @@ func main() {
 		})
 	})
 
+	cfg, err := appconfig.Load()
+
+	if (err != nil) {
+		log.Fatalf("load config failed: %v", err)
+	}
+	
 	server := &http.Server{
-		Addr: ":8080",
+		Addr: fmt.Sprintf(":%d", cfg.App.Port),
 		Handler: engine,
 	}
 

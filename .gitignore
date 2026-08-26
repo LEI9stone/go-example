@@ -1,0 +1,4 @@
+config/local.yaml
+.env
+bin/
+logs/
