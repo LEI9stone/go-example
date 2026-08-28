@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
+	"unicode/utf8"
 
 	"example.com/acg-go-demo/internal/dto"
 	"example.com/acg-go-demo/internal/model"
@@ -80,9 +82,14 @@ func (s *userService) Register(ctx context.Context, req dto.RegisterRequest) (*d
 }
 
 func (s *userService) Delete(ctx context.Context, id uint64) error {
-	if err := s.userRepo.Delete(ctx, id); err != nil {
+	rows, err := s.userRepo.Delete(ctx, id)
+	if err != nil {
 		log.Printf("delete user failed, id=%d, err=%v", id, err)
 		return fmt.Errorf("delete user error: %w", err)
+	}
+	if rows == 0 {
+		log.Printf("delete user: user not found")
+		return ErrUserNotFound
 	}
 	return nil
 }
@@ -107,4 +114,27 @@ func (s *userService) Get(ctx context.Context, id uint64) (*dto.UserResponse, er
 		Account:  user.Account,
 		Nickname: user.Nickname,
 	}, nil
+}
+
+func (s *userService) UpdateNickname(ctx context.Context, id uint64, nickname string) error {
+	if id == 0 {
+		return fmt.Errorf("update nickname but invalid user. id: %d, nickname=%q", id, nickname)
+	}
+	nickname = strings.TrimSpace(nickname)
+	if nickname == "" {
+		return fmt.Errorf("nickname cannot be empty. id: %d, nickname=%q", id, nickname)
+	}
+	if utf8.RuneCountInString(nickname) > 100 {
+		return fmt.Errorf("nickname is too long. id:%d,nickname=%q", id, nickname)
+	}
+	rows, err := s.userRepo.UpdateNickname(ctx, id, nickname)
+	if err != nil {
+		log.Printf("update nickname failed. id=%d, nickname=%q, err=%v", id, nickname, err)
+		return fmt.Errorf("update nickname: %w", err)
+	}
+	if rows == 0 {
+		log.Printf("update nickname: user not found")
+		return ErrUserNotFound
+	}
+	return nil
 }

@@ -11,8 +11,8 @@ type UserRepository interface {
 	Create(ctx context.Context, user *model.User) error
 	GetByID(ctx context.Context, id uint64) (*model.User, error)
 	GetByAccount(ctx context.Context, account string) (*model.User, error)
-	UpdateNickname(ctx context.Context, id uint64, nickname string) error
-	Delete(ctx context.Context, id uint64) error
+	UpdateNickname(ctx context.Context, id uint64, nickname string) (int64, error)
+	Delete(ctx context.Context, id uint64) (int64, error)
 	UpdateAuthTokenHash(ctx context.Context, id uint64, hash string) error
 	ClearAuthTokenHash(ctx context.Context, id uint64) error
 	GetByAuthTokenHash(ctx context.Context, hash string) (*model.User, error)
@@ -47,15 +47,17 @@ func (r *userRepository) GetByAccount(ctx context.Context, account string) (*mod
 	return &user, nil
 }
 
-func (r *userRepository) UpdateNickname(ctx context.Context, id uint64, nickname string) error {
-	return r.db.WithContext(ctx).
+func (r *userRepository) UpdateNickname(ctx context.Context, id uint64, nickname string) (int64, error) {
+	result := r.db.WithContext(ctx).
 		Model(&model.User{}).
 		Where("id = ?", id).
-		Update("nickname", nickname).Error
+		Update("nickname", nickname)
+	return result.RowsAffected, result.Error
 }
 
-func (r *userRepository) Delete(ctx context.Context, id uint64) error {
-	return r.db.WithContext(ctx).Delete(&model.User{}, id).Error
+func (r *userRepository) Delete(ctx context.Context, id uint64) (int64, error) {
+	result := r.db.WithContext(ctx).Delete(&model.User{}, id)
+	return result.RowsAffected, result.Error
 }
 
 func (r *userRepository) UpdateAuthTokenHash(ctx context.Context, id uint64, hash string) error {
