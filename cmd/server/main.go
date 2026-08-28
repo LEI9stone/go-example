@@ -59,7 +59,7 @@ func main() {
 
 	api := engine.Group("/api")
 	{
-		api.POST("/users", userHandler.Register)
+		api.POST("/users/register", userHandler.Register)
 		api.GET("/users/:id", userHandler.Get)
 		api.PATCH("/users/:id/nickname", userHandler.UpdateNickname)
 		api.DELETE("/users/:id", userHandler.Delete)
