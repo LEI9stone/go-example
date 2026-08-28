@@ -11,6 +11,10 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required,min=8"`
 }
 
+type UpdateNicknameRequest struct {
+	Nickname string `json:"nickname" binding:"required,min=1,max=100"`
+}
+
 type UserResponse struct {
 	ID       uint64 `json:"id"`
 	Account  string `json:"account"`

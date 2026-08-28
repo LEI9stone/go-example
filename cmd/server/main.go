@@ -10,8 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"example.com/acg-go-demo/internal/app"
+	"example.com/acg-go-demo/internal/handler"
 	"example.com/acg-go-demo/internal/middleware"
+	"example.com/acg-go-demo/internal/repository"
 	"example.com/acg-go-demo/internal/response"
+	"example.com/acg-go-demo/internal/service"
 	"github.com/gin-gonic/gin"
 
 	appconfig "example.com/acg-go-demo/internal/config"
@@ -19,7 +23,7 @@ import (
 
 func main() {
 
-	engine := gin.New();
+	engine := gin.New()
 	engine.Use(
 		middleware.RequestID(),
 		middleware.TraceID(),
@@ -39,12 +43,30 @@ func main() {
 
 	cfg, err := appconfig.Load()
 
-	if (err != nil) {
+	if err != nil {
 		log.Fatalf("load config failed: %v", err)
 	}
-	
+
+	db, err := app.OpenDatabase(cfg)
+
+	if err != nil {
+		log.Fatalf("open database failed: $v", err)
+	}
+
+	userRepe := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepe)
+	userHandler := handler.NewUserHandler(userService)
+
+	api := engine.Group("/api")
+	{
+		api.POST("/users", userHandler.Register)
+		api.GET("/users/:id", userHandler.Get)
+		api.PATCH("/users/:id/nickname", userHandler.UpdateNickname)
+		api.DELETE("/users/:id", userHandler.Delete)
+	}
+
 	server := &http.Server{
-		Addr: fmt.Sprintf(":%d", cfg.App.Port),
+		Addr:    fmt.Sprintf(":%d", cfg.App.Port),
 		Handler: engine,
 	}
 
