@@ -86,3 +86,25 @@ func (s *userService) Delete(ctx context.Context, id uint64) error {
 	}
 	return nil
 }
+
+func (s *userService) Get(ctx context.Context, id uint64) (*dto.UserResponse, error) {
+	if id == 0 {
+		return nil, fmt.Errorf("invalid user id: %d", id)
+	}
+	user, err := s.userRepo.GetByID(ctx, id)
+	switch {
+	case err == nil:
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		log.Printf("user not found, id=%d, err=%v", id, err)
+		return nil, ErrUserNotFound
+	default:
+		// 数据库连接错误，查询超时等其他错误
+		log.Printf("get user by id failed, id=%d, err=%v", id, err)
+		return nil, fmt.Errorf("get user by id : %w", err)
+	}
+	return &dto.UserResponse{
+		ID:       user.ID,
+		Account:  user.Account,
+		Nickname: user.Nickname,
+	}, nil
+}
