@@ -20,3 +20,8 @@ type UserResponse struct {
 	Account  string `json:"account"`
 	Nickname string `json:"nickname"`
 }
+
+type LoginResponse struct {
+	Token string       `json:"token"`
+	User  UserResponse `json:"user"`
+}

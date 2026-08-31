@@ -40,7 +40,7 @@ func main() {
 		log.Fatalf("open database failed: %v", err)
 	}
 
-	router.RegisterRoutes(engine, db)
+	router.RegisterRoutes(engine, db, cfg)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.App.Port),

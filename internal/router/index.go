@@ -1,12 +1,13 @@
 package router
 
 import (
+	"example.com/acg-go-demo/internal/config"
 	"example.com/acg-go-demo/internal/response"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func RegisterRoutes(engine *gin.Engine, db *gorm.DB) {
+func RegisterRoutes(engine *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	api := engine.Group("/api")
 
 	api.GET("/health", func(c *gin.Context) {
@@ -20,4 +21,5 @@ func RegisterRoutes(engine *gin.Engine, db *gorm.DB) {
 	})
 
 	UsersRoutes(api, db)
+	AuthRoutes(api, db, cfg)
 }
